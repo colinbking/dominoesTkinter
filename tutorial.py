@@ -5,7 +5,7 @@ def searchMenu(menu):
 	item = input("Type an item to look for: ").strip().lower()
 
 	if len(item) > 1:
-		item = item[0].upper() + item[1:]
+		item = item.capitalize()
 		print(f"Results for: {item}\n")
 		menu.search(Name=item)
 		print()
