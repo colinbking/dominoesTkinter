@@ -1,7 +1,10 @@
 pizzapy
 =======
 
-*This has been forked from @Magicjarvis the readme below is the same as his repository..* 
+
+*This has been forked from @Magicjarvis the readme below is the same as his repository..
+This repository is essentially creating a GUI wrapper using tkinter, to make his project
+more friendly for tutoring applications* 
 
 Disclaimer
 -----------
