@@ -20,9 +20,10 @@ class MenuCategory(object):
 
 # TODO: Get rid of this class
 class MenuItem(object):
-    def __init__(self, data={}):
+    def __init__(self, data, price = None):
         self.code = data['Code']
         self.name = data['Name']
+        self.price = price
         self.menu_data = data
         self.categories = []
 
@@ -99,6 +100,7 @@ class Menu(object):
     # TODO: Return the search results and print in different method
     # TODO: Import fuzzy search module or allow lists as search conditions
     def search(self, **conditions):
+        items = []
         max_len = lambda x: 2 + max(len(v[x]) for v in list(self.variants.values()))
         for v in self.variants.values():
             v['Toppings'] = dict(x.split('=', 1) for x in v['Tags']['DefaultToppings'].split(',') if x)
@@ -106,6 +108,10 @@ class Menu(object):
                 print(v['Code'], end=' ')
                 print(v['Name'], end=' ')
                 print('$' + v['Price'])
+                price = v['Price']
+                print("price is here, ", price)
+                items.append(MenuItem(v, price))
                 #print(v['SizeCode'], end=' ')
                 #print(v['ProductCode'], end=' ')
                 #print(v['Toppings'])
+        return items

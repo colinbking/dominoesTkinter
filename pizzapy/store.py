@@ -51,8 +51,11 @@ class StoreLocator(object):
         and stores that are not currently in service (!['ServiceIsOpen']).
         """
         data = request_json(address.urls.find_url(), line1=address.line1, line2=address.line2, type=service)
-        return [Store(x, address.country) for x in data['Stores']
-                if x['IsOnlineNow'] and x['ServiceIsOpen'][service]]
+        print("data", data, "\n")
+        print("urls", address.urls.find_url(), "\n")
+
+        return [Store(x, address.country) for x in data['Stores']]
+                # if x['IsOnlineNow'] and x['ServiceIsOpen'][service]]
 
     @staticmethod
     def find_closest_store_to_customer(customer, service='Delivery'):
