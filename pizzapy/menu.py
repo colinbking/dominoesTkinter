@@ -109,7 +109,6 @@ class Menu(object):
                 print(v['Name'], end=' ')
                 print('$' + v['Price'])
                 price = v['Price']
-                print("price is here, ", price)
                 items.append(MenuItem(v, price))
                 #print(v['SizeCode'], end=' ')
                 #print(v['ProductCode'], end=' ')

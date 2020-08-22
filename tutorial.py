@@ -40,7 +40,7 @@ if ans.lower() not in ["yes", "y"]:
 print("\nMENU\n")
 
 menu = my_local_dominos.get_menu()
-order = Order.begin_customer_order(customer, my_local_dominos, "ca")
+order = Order.begin_customer_order(customer, my_local_dominos, "us")
 
 while True:
 	searchMenu(menu)

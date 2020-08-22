@@ -1,6 +1,8 @@
 import tkinter as tk
-from tkinter import font  as tkfont # python 3
+from tkinter import font as tkfont # python 3
 from tkinter import ttk
+from tkinter import Scrollbar
+
 
 
 from pizzapy import Customer, StoreLocator, Order, ConsoleInput
@@ -11,12 +13,11 @@ from pizzapy.payment import CreditCard
 
 def handle_focus_in(entry):
     entry.delete(0, tk.END)
-    entry.config(fg='black')
+    entry.config(foreground='black')
 
 def handle_focus_out(entry):
     entry.delete(0, tk.END)
-    entry.config(fg='grey')
-    entry.insert(0, "Example")
+    entry.insert(0, "Menu Item")
 
 def handle_enter(entry):
     handle_focus_out(entry)
@@ -32,8 +33,16 @@ class Client():
         self.place = ""
         self.card = ""
         self.items = []
+        self.total_price = 0
 
-client = None
+client = Client()
+
+# TODO: 
+# Pictures, 
+# class design 
+# screen after placing order that shows total 
+#   and ETA (get from response json -> EstimatedWaitMinutes key, 
+#       also use AmountsBreakdown -> DeliveryFee, Tax, to get total), adding coupons, 
 
 class Welcome(tk.Tk):
 
@@ -45,7 +54,7 @@ class Welcome(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
-
+        self.total_price = 0.0
         for F in (StartPage, InfoPage, MenuPage, RestaurantPage, FinalizeOrderPage, PaymentPage):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
@@ -77,9 +86,14 @@ class StartPage(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
         button = ttk.Button(self, text="Start",
                            command=lambda: controller.show_frame("InfoPage"))
+        button.place(x=250, y=250,width=230,height=50)
         button.pack()
-        self.close_button = ttk.Button(self, text="Close", command=parent.quit)
-        self.close_button.pack()
+        self.close_button = ttk.Button(self, text="Quit", command=parent.quit)
+        # self.close_button.config(height = 20, width = 30)
+        self.close_button.place(x=0, y=0,width=60,height=40)
+
+
+        # self.close_button.pack(pady="5")
 
 
 class InfoPage(tk.Frame):
@@ -183,6 +197,8 @@ class MenuPage(tk.Frame):
         button = tk.Button(self, text="Go back to the start page",
                            command=lambda: controller.show_frame("StartPage"))
         button.pack()
+        scroll = Scrollbar(self)
+
         self.prompt = tk.Label(self, text= "Please enter the category or ingredient of an item you want.", font=controller.title_font)
         self.prompt.pack()
         
@@ -191,9 +207,9 @@ class MenuPage(tk.Frame):
         # full_name_entry.bind("<Return>", handle_enter)
 
         self.search_entry = ttk.Entry(self, textvariable=v)
-        self.search_entry.insert(0, "Example: Hawaiian Pizza")
-        # self.search_entry.bind("<FocusIn>", handle_focus_in(self.search_entry))
-        # self.search_entry.bind("<FocusOut>", handle_focus_out(self.search_entry))
+        # self.search_entry.insert(0, "Example: Hawaiian Pizza")
+        self.search_entry.bind("<FocusIn>", handle_focus_in(self.search_entry))
+        self.search_entry.bind("<FocusOut>", handle_focus_out(self.search_entry))
         self.search_entry.bind('<Return>', (lambda event: self.item_lookup()))      # on enter key
         
         self.search_entry.pack()
@@ -208,9 +224,18 @@ class MenuPage(tk.Frame):
         select_entry = ttk.Entry(self, textvariable=tk.StringVar())
         select_entry.bind('<Return>', (lambda event: self.add_item_to_cart(self.order, select_entry.get())))      # on enter key
         select_entry.pack(pady = "20")
+        self.total_cost = tk.Label(self, text="Total Cost: $0.0")
+        self.total_cost.pack(padx="10")
 
-        self.items_prompt = tk.Label(self, text= "")
-        self.items_prompt.pack(pady = "10")
+        self.items_prompt = tk.Text(self, font=("Helvetica", 20), width = "70", padx = "3.0", height = "20",)
+        self.items_prompt.pack(side = "left", pady = "5")
+
+        self.menu_so_far = tk.Label(self, text="Here's your order so far: \n", font=controller.title_font)
+        self.menu_so_far.pack(side="right", padx=10)
+
+        self.delete_last_item = ttk.Button(self, text="Remove last item", command=lambda: self.delete_last_item_from_cart())
+        self.delete_last_item.pack(side="right", padx=10, pady=10)
+
 
 
     def item_lookup(self):
@@ -220,7 +245,7 @@ class MenuPage(tk.Frame):
             self.menu = client.chosen_rst.get_menu()
         
         # reset the items list view, then search for items
-        self.items_prompt['text'] = ""
+        self.items_prompt.delete("1.0","end-1c")
         item = self.search_entry.get().strip().lower()
         if len(item) > 1:
             item = item[0].upper() + item[1:]
@@ -230,7 +255,7 @@ class MenuPage(tk.Frame):
             for thing in menu_items:
                 # print(thing.price, thing.code, thing.name)
                 all_items += "\n" + thing.name + " " + thing.code
-            self.items_prompt['text'] = all_items
+            self.items_prompt.insert("1.0", all_items)
 
         # if searching with empty string
         else:
@@ -238,12 +263,33 @@ class MenuPage(tk.Frame):
             self.item_lookup()
       
     def add_item_to_cart(self, order, code):
+        global client
         order.add_item(code)
-        print(self.order.data['Products'])
+        self.controller.total_price += float(order.data["Products"][-1]["Price"])
+        self.total_cost['text'] = "Total Cost: $" + str(self.controller.total_price)
+        print("cost", self.total_cost)
+        items = self.order.data["Products"]
+        self.menu_so_far['text'] += "".join([item["Name"] + " " + item["Price"] + "\n" for item in items]) + "Total Cost: " + str(self.controller.total_price) 
+        # self.order_label['text'] = ""
+        # total = 0
+        # for item in order.data["Products"]:
+        #     price = item["Price"]
+        #     name = item["Name"]
+        #     total += float(price)
+        #     self.order_label['text'] += "Item: " + name + "$" + price + "\n"
+        # self.order_label['text'] += "GRAND TOTAL (pre-tax): $" + str(total)
 
     def remove_item_from_cart(self, order, code):
         order.remove_item(code)
-        
+    
+    def delete_last_item_from_cart(self):
+        price_to_sub = float(self.order.data["Products"][-1]["Price"])
+        self.controller.total_price -= price_to_sub
+        self.order.data["Products"].pop(-1)
+        self.menu_so_far['text'] = "".join([item["Name"] + " " + item["Price"] + "\n" for item in  self.order.data["Products"]]) + "Total Cost: " + str(self.controller.total_price) 
+        self.total_cost['text'] = "Total Cost: $" + str(self.controller.total_price)
+        print("cost", self.total_cost)
+
     def finish_order(self):
         global client
         client.order = self.order
@@ -269,6 +315,7 @@ class FinalizeOrderPage(tk.Frame):
         self.close_button.pack()
 
     def displayOrder(self, order):
+        global client
         self.order_label['text'] = ""
         total = 0
         for item in order.data["Products"]:
@@ -297,9 +344,20 @@ class PaymentPage(tk.Frame):
     def pay_with_card(self):
         global client
         self.get_credit_card()
-        client.order.place(self.card)
-        client.chosen_rst.place_order(client.order, True)
-        pass
+        print("triggering card collect \n")
+        # client.order.place(self.card)
+        # client.chosen_rst.place_order(client.order, True)
+        
+    def pay_now(self):
+        print("triggering pay \n")
+        try:
+            # replace with .place instead of .pay_with
+            resp = client.order.pay_with(self.card)
+            print("RESPONSE :", resp, "\n")
+        except Exception as e:
+            print(e)
+        # client.chosen_rst.place_order(client.order, True)
+        
 
     def pay_with_cash(self):
 
@@ -343,8 +401,12 @@ class PaymentPage(tk.Frame):
             label = tk.Label(self, text="Card Validated!\n", font=self.controller.title_font)
             label.pack(side="top", fill="x", pady=10)
             print("heres card", self.card)
+            button = ttk.Button(self, text="Confirm Payment",
+                           command=lambda: self.pay_now())
+            button.pack()
         except Exception as e:
-            label = tk.Label(self, text="Card was invalid! Please try again \n", font=self.controller.title_font)
+            print(e)
+            label = tk.Label(self, text=e, font=self.controller.title_font)
             label.pack(side="top", fill="x", pady=10)
             # return self.extract_card_info(card_entry, date_entry, cvv_entry, zip_entry)
 

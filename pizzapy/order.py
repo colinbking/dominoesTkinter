@@ -36,7 +36,7 @@ class Order(object):
             }
 
     @staticmethod
-    def begin_customer_order(customer, store, country="CA"):
+    def begin_customer_order(customer, store, country="US"):
         return Order(store, customer, country=country)
 
     def __repr__(self):
