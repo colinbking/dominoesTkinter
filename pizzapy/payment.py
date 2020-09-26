@@ -34,11 +34,9 @@ class CreditCard(object):
         print("valid2",is_valid)
 
         is_valid &= (5 <= len(self.zip) >= 6)
-        print("valid3",is_valid, self.zip)
+        print("valid3",is_valid)
 
-        return is_valid
-
-    def find_type(self):
+type(self):
         patterns = {'VISA': r'^4[0-9]{12}(?:[0-9]{3})?$',
                     'MASTERCARD': r'^5[1-5][0-9]{14}$',
                     'AMEX': r'^3[47][0-9]{13}$',
