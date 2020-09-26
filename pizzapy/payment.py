@@ -9,11 +9,18 @@ class CreditCard(object):
     """
     def __init__(self, number='', expiration='', cvv='', zip=''):
         self.name = ''
+        print("name is", self.name)
         self.number = str(number).strip()
+        print("num is", self.number)
+
         self.card_type = self.find_type()
+        print("card_type is", self.card_type)
         self.expiration = str(expiration).strip()
+        print("expiration is", self.expiration)
         self.cvv = str(cvv).strip()
+        print("cvv is", self.cvv)
         self.zip = str(zip).strip()
+        print("zip is", self.zip)
         if not self.validate():
             raise Exception("Invalid Card.")
 
@@ -22,8 +29,13 @@ class CreditCard(object):
 
     def validate(self):
         is_valid = self.number.isdigit() and len(self.number) == 16 and self.card_type != "" and len(self.expiration) == 4 and self.expiration.isdigit()
+        print("valid1",is_valid)
         is_valid &= len(self.cvv) == 3 and self.cvv.isdigit()
-        is_valid &= 5 <= len(self.zip) >= 6
+        print("valid2",is_valid)
+
+        is_valid &= (5 <= len(self.zip) >= 6)
+        print("valid3",is_valid, self.zip)
+
         return is_valid
 
     def find_type(self):
